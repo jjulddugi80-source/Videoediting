@@ -46,7 +46,7 @@
                 </div>
             </section>
 
-            <!-- 01. SCREEN SUBTITLE (베트남어 예시 적용) -->
+            <!-- 01. SCREEN SUBTITLE -->
             <section>
                 <h3 class="section-title">01. SCREEN SUBTITLE</h3>
                 <input type="text" id="subtitle" class="input-underline text-xs uppercase" placeholder="Text to burn (e.g. TIN NÓNG HÔM NAY)">
@@ -62,7 +62,7 @@
                 </div>
             </section>
 
-            <!-- 03. EDITING DIRECTION (가나어/트위어 예시 적용) -->
+            <!-- 03. EDITING DIRECTION -->
             <section>
                 <h3 class="section-title text-indigo-700 border-indigo-700">03. EDITING DIRECTION</h3>
                 <textarea id="prompt" rows="3" class="w-full bg-gray-50 border-2 border-black p-2.5 text-xs font-bold outline-none resize-none placeholder-gray-400" placeholder="e.g., Yɛntɔ Dwom - Anigye na ɛwɔ ha (Epic groove, dynamic vibe...)"></textarea>
@@ -93,6 +93,7 @@
             <section>
                 <h3 class="section-title">06. TARGET PLATFORMS (RATIO)</h3>
                 <div class="space-y-2.5">
+                    <!-- 9:16 VERTICAL -->
                     <div class="p-2.5 border-2 border-black bg-gray-50">
                         <span class="block text-[11px] font-black mb-2 text-rose-600">VERTICAL (9:16) - SHORT FORM</span>
                         <div class="flex flex-wrap gap-2 text-[10px] font-black">
@@ -100,6 +101,14 @@
                             <label class="flex items-center gap-1.5 px-2 py-1 border-2 border-gray-300 hover:border-black cursor-pointer bg-white"><input type="checkbox" name="platform" value="shorts" checked class="accent-black platform-checkbox"> SHORTS</label>
                             <label class="flex items-center gap-1.5 px-2 py-1 border-2 border-gray-300 hover:border-black cursor-pointer bg-white"><input type="checkbox" name="platform" value="reels" class="platform-checkbox"> REELS</label>
                             <label class="flex items-center gap-1.5 px-2 py-1 border-2 border-gray-300 hover:border-black cursor-pointer bg-white"><input type="checkbox" name="platform" value="snapchat" class="platform-checkbox"> SNAPCHAT</label>
+                        </div>
+                    </div>
+                    <!-- 16:9 HORIZONTAL -->
+                    <div class="p-2.5 border-2 border-black bg-gray-50">
+                        <span class="block text-[11px] font-black mb-2 text-blue-600">HORIZONTAL (16:9) - MAIN VIDEO</span>
+                        <div class="flex flex-wrap gap-2 text-[10px] font-black">
+                            <label class="flex items-center gap-1.5 px-2 py-1 border-2 border-gray-300 hover:border-black cursor-pointer bg-white"><input type="checkbox" name="platform" value="youtube" class="accent-black platform-checkbox"> YOUTUBE</label>
+                            <label class="flex items-center gap-1.5 px-2 py-1 border-2 border-gray-300 hover:border-black cursor-pointer bg-white"><input type="checkbox" name="platform" value="twitter" class="platform-checkbox"> X (TWITTER)</label>
                         </div>
                     </div>
                 </div>
