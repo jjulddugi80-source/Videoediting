@@ -299,15 +299,14 @@
                 }
 
                 // 3. n8n 웹훅 또는 API를 통해 실시간 pi_usd_price 조회
-                // (n8n에서 위젯 데이터를 리턴해주는 엔드포인트 URL로 연결하세요)
                 const res = await fetch('https://app.dreamfactory.top/webhook/get-pi-price', {
                     signal: AbortSignal.timeout(4000) // 4초 타임아웃 방어
                 });
 
                 if (res.ok) {
                     const data = await res.json();
-                    // n8n의 Code 노드 출력이 pi_usd_price 필드이므로 이를 반영
-                    const livePrice = data.pi_usd_price || data.price;
+                    // n8n의 pi_usd_price, 일반 price, 또는 코인게코 구조(pi-network.usd) 모두 완벽 호환 대응
+                    const livePrice = data.pi_usd_price || data.price || (data["pi-network"] ? data["pi-network"].usd : null);
                     if (livePrice && !isNaN(parseFloat(livePrice))) {
                         currentPiPriceUsd = parseFloat(livePrice);
                         localStorage.setItem('cached_pi_price', currentPiPriceUsd);
