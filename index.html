@@ -46,10 +46,10 @@
                 </div>
             </section>
 
-            <!-- 01. SCREEN SUBTITLE -->
+            <!-- 01. SCREEN SUBTITLE (베트남어 예시 적용) -->
             <section>
                 <h3 class="section-title">01. SCREEN SUBTITLE</h3>
-                <input type="text" id="subtitle" class="input-underline text-xs uppercase" placeholder="Text to be burned on video (e.g. BREAKING NEWS)">
+                <input type="text" id="subtitle" class="input-underline text-xs uppercase" placeholder="Text to burn (e.g. TIN NÓNG HÔM NAY)">
             </section>
 
             <!-- 02. MEDIA UPLOAD GUIDE -->
@@ -62,10 +62,10 @@
                 </div>
             </section>
 
-            <!-- 03. EDITING DIRECTION -->
+            <!-- 03. EDITING DIRECTION (가나어/트위어 예시 적용) -->
             <section>
                 <h3 class="section-title text-indigo-700 border-indigo-700">03. EDITING DIRECTION</h3>
-                <textarea id="prompt" rows="3" class="w-full bg-gray-50 border-2 border-black p-2.5 text-xs font-bold outline-none resize-none placeholder-gray-400" placeholder="e.g., Cinematic lighting, epic mood..."></textarea>
+                <textarea id="prompt" rows="3" class="w-full bg-gray-50 border-2 border-black p-2.5 text-xs font-bold outline-none resize-none placeholder-gray-400" placeholder="e.g., Yɛntɔ Dwom - Anigye na ɛwɔ ha (Epic groove, dynamic vibe...)"></textarea>
             </section>
 
             <!-- 04. REGION & GENDER -->
@@ -77,6 +77,7 @@
                         <option value="KR" data-dial="+82" selected>South Korea (KR / +82)</option>
                         <option value="US" data-dial="+1">United States (US / +1)</option>
                         <option value="VN" data-dial="+84">Vietnam (VN / +84)</option>
+                        <option value="GH" data-dial="+233">Ghana (GH / +233)</option>
                     </select>
                 </div>
                 <div>
@@ -137,23 +138,22 @@
 
     <script>
         let isSubmitting = false;
-        let currentPiPriceUsd = 0.0679; // 기본 폴백 시세
+        let currentPiPriceUsd = 0.0679;
+        let lastCalculatedUsd = "0.70";
+        let lastCalculatedPi = "10.00";
 
-        // ⏱️ [브라우저가 직접 10분마다 CoinGecko 시세를 가져오는 로직]
         async function fetchLivePiPrice() {
             try {
                 const savedPrice = localStorage.getItem('cached_pi_price');
                 const savedTime = localStorage.getItem('cached_pi_time');
                 const TEN_MINUTES = 10 * 60 * 1000;
 
-                // 10분이 지나지 않았다면 로컬 캐시 사용
                 if (savedPrice && savedTime && (Date.now() - parseInt(savedTime) < TEN_MINUTES)) {
                     currentPiPriceUsd = parseFloat(savedPrice);
                     updateTotalCost();
                     return;
                 }
 
-                // 10분이 지났거나 캐시가 없으면 CoinGecko 직조회
                 const res = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=pi-network&vs_currencies=usd', {
                     signal: AbortSignal.timeout(4000)
                 });
@@ -168,7 +168,6 @@
                     }
                 }
             } catch (e) {
-                console.log("⚠️ CoinGecko 직조회 실패, 기존 캐시 또는 기본값 유지:", currentPiPriceUsd);
                 const fallbackPrice = localStorage.getItem('cached_pi_price');
                 if (fallbackPrice) {
                     currentPiPriceUsd = parseFloat(fallbackPrice);
@@ -177,7 +176,6 @@
             updateTotalCost();
         }
 
-        // 페이지 로드 시 시세 연동 실행
         fetchLivePiPrice();
 
         function toggleOrderType(type) {
@@ -204,13 +202,16 @@
             
             const totalUsdWithFee = usdAmount * 1.05;
             const estimatedPi = totalUsdWithFee / currentPiPriceUsd;
+
+            lastCalculatedUsd = totalUsdWithFee.toFixed(2);
+            lastCalculatedPi = estimatedPi.toFixed(4);
             
             const usdTotalEl = document.getElementById('usdTotal');
             const piTotalEl = document.getElementById('piTotal');
             const appliedRateEl = document.getElementById('appliedRateText');
             
-            if (usdTotalEl) usdTotalEl.innerText = `$${totalUsdWithFee.toFixed(2)} USD (incl. 5% fee)`;
-            if (piTotalEl) piTotalEl.innerText = `≈ ${estimatedPi.toFixed(2)} Pi`;
+            if (usdTotalEl) usdTotalEl.innerText = `$${lastCalculatedUsd} USD (incl. 5% fee)`;
+            if (piTotalEl) piTotalEl.innerText = `≈ ${lastCalculatedPi} Pi`;
             if (appliedRateEl) appliedRateEl.innerText = `1 Pi = $${currentPiPriceUsd.toFixed(4)} USD (Direct Sync)`;
         }
 
@@ -222,7 +223,6 @@
             radio.addEventListener('change', updateTotalCost);
         });
 
-        // 🚀 주문 접수 및 n8n 웹훅 전송 함수
         async function submitOrder() {
             if (isSubmitting) return;
 
@@ -254,12 +254,15 @@
                 action: "PIONEER_ORDER",
                 chat_id: chatId,
                 order_type: document.querySelector('input[name="order_type"]:checked').value,
+                parent_tx_id: document.getElementById('parentTxId')?.value || "",
                 subtitle: document.getElementById('subtitle').value,
                 prompt: document.getElementById('prompt').value,
                 country_code: countrySelect.value,
                 country_dial: selectedOption.getAttribute('data-dial'),
                 platforms: platforms,
                 calculated_pi_price: currentPiPriceUsd,
+                total_usd: lastCalculatedUsd,
+                estimated_pi: lastCalculatedPi,
                 timestamp: new Date().toISOString()
             };
 
