@@ -68,6 +68,14 @@
                 <textarea id="prompt" rows="3" class="w-full bg-gray-50 border-2 border-black p-2.5 text-xs font-bold outline-none resize-none placeholder-gray-400" placeholder="e.g., Yɛntɔ Dwom - Anigye na ɛwɔ ha (Epic groove, dynamic vibe...)"></textarea>
             </section>
 
+            <!-- 03.5 SENDER WALLET ADDRESS -->
+            <section class="p-3 bg-purple-50 border-2 border-black">
+                <h3 class="section-title text-purple-800 border-purple-800">03.5 YOUR PI SENDER WALLET</h3>
+                <p class="text-[10px] font-bold text-gray-700 mt-1 mb-1">Enter your Pi Wallet address used for payment:</p>
+                <input type="text" id="senderWallet" placeholder="e.g., GDVFVN4MMMKYUR6LO2DIC5STGBXBLK35XPKIPZUOY7ZMOYVJMEF3J45K" class="w-full bg-white border-2 border-black p-2 text-xs font-mono font-bold uppercase">
+                <p class="text-[9px] text-gray-500 mt-1 font-bold">💡 Copy and paste your wallet address from your Pi Wallet app.</p>
+            </section>
+
             <!-- 04. REGION & GENDER -->
             <section class="space-y-4">
                 <div>
@@ -138,9 +146,7 @@
                         <span id="appliedRateText" class="font-mono">1 Pi = $0.0679 USD (Direct Sync)</span>
                     </div>
                 </div>
-                <button onclick="submitOrder()" id="submitBtn" class="w-full bg-black text-white font-black py-4 text-xs hover:bg-zinc-800 transition active:scale-95 uppercase tracking-widest border-2 border-black shadow-lg">
-                    [ SUBMIT & START AI FACTORY ]
-                </button>
+                <button onclick="submitOrder()" id="submitBtn" class="w-full bg-black text-white font-black py-4 text-xs hover:bg-zinc-800 transition active:scale-95 uppercase tracking-widest border-2 border-black shadow-lg"> [ SUBMIT & START AI FACTORY ] </button>
             </div>
         </div>
     </div>
@@ -156,17 +162,12 @@
                 const savedPrice = localStorage.getItem('cached_pi_price');
                 const savedTime = localStorage.getItem('cached_pi_time');
                 const TEN_MINUTES = 10 * 60 * 1000;
-
                 if (savedPrice && savedTime && (Date.now() - parseInt(savedTime) < TEN_MINUTES)) {
                     currentPiPriceUsd = parseFloat(savedPrice);
                     updateTotalCost();
                     return;
                 }
-
-                const res = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=pi-network&vs_currencies=usd', {
-                    signal: AbortSignal.timeout(4000)
-                });
-                
+                const res = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=pi-network&vs_currencies=usd', { signal: AbortSignal.timeout(4000) });
                 if (res.ok) {
                     const data = await res.json();
                     const livePrice = data['pi-network']?.usd;
@@ -184,7 +185,6 @@
             }
             updateTotalCost();
         }
-
         fetchLivePiPrice();
 
         function toggleOrderType(type) {
@@ -200,7 +200,6 @@
         function updateTotalCost() {
             const orderTypeElement = document.querySelector('input[name="order_type"]:checked');
             const orderType = orderTypeElement ? orderTypeElement.value : 'NEW';
-            
             let usdAmount = 0.50;
             if (orderType === 'REV') {
                 usdAmount = 0.05;
@@ -208,17 +207,15 @@
                 const checkedPlatforms = document.querySelectorAll('input[name="platform"]:checked');
                 usdAmount = 0.50 + (checkedPlatforms.length * 0.10);
             }
-            
             const totalUsdWithFee = usdAmount * 1.05;
             const estimatedPi = totalUsdWithFee / currentPiPriceUsd;
-
             lastCalculatedUsd = totalUsdWithFee.toFixed(2);
             lastCalculatedPi = estimatedPi.toFixed(4);
-            
+
             const usdTotalEl = document.getElementById('usdTotal');
             const piTotalEl = document.getElementById('piTotal');
             const appliedRateEl = document.getElementById('appliedRateText');
-            
+
             if (usdTotalEl) usdTotalEl.innerText = `$${lastCalculatedUsd} USD (incl. 5% fee)`;
             if (piTotalEl) piTotalEl.innerText = `≈ ${lastCalculatedPi} Pi`;
             if (appliedRateEl) appliedRateEl.innerText = `1 Pi = $${currentPiPriceUsd.toFixed(4)} USD (Direct Sync)`;
@@ -227,7 +224,6 @@
         document.querySelectorAll('input[name="platform"]').forEach(checkbox => {
             checkbox.addEventListener('change', updateTotalCost);
         });
-
         document.querySelectorAll('input[name="order_type"]').forEach(radio => {
             radio.addEventListener('change', updateTotalCost);
         });
@@ -239,6 +235,14 @@
             if (!countrySelect.value) {
                 alert("Please select a Region!");
                 countrySelect.focus();
+                return;
+            }
+
+            const senderWalletInput = document.getElementById('senderWallet');
+            const senderWallet = senderWalletInput ? senderWalletInput.value.trim() : "";
+            if (!senderWallet) {
+                alert("Please enter your Pi Sender Wallet address!");
+                senderWalletInput.focus();
                 return;
             }
 
@@ -262,6 +266,7 @@
             const data = {
                 action: "PIONEER_ORDER",
                 chat_id: chatId,
+                sender_wallet: senderWallet, // 👈 n8n으로 넘어가는 유저 지갑 주소
                 order_type: document.querySelector('input[name="order_type"]:checked').value,
                 parent_tx_id: document.getElementById('parentTxId')?.value || "",
                 subtitle: document.getElementById('subtitle').value,
