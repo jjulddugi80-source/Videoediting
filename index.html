@@ -80,19 +80,15 @@
       <!-- 00. ORDER TYPE -->
       <section class="p-3 bg-amber-50 border-2 border-black">
         <h3 class="section-title text-amber-800 border-amber-800">00. SELECT ORDER TYPE</h3>
-        <div class="flex flex-col gap-2 mt-2 mb-2">
+        <div class="flex flex-col gap-2 mt-2">
           <label class="flex items-center gap-2 cursor-pointer text-xs font-black">
-            <input type="radio" name="order_type" value="NEW" checked onclick="toggleOrderType('NEW')" class="accent-black w-4 h-4">
+            <input type="radio" name="order_type" value="NEW" checked class="accent-black w-4 h-4">
             <span>NEW ORDER (Base $0.50 + $0.10/EA + 5% Fee)</span>
           </label>
           <label class="flex items-center gap-2 cursor-pointer text-xs font-black text-indigo-700">
-            <input type="radio" name="order_type" value="REV" onclick="toggleOrderType('REV')" class="accent-indigo-700 w-4 h-4">
+            <input type="radio" name="order_type" value="REV" class="accent-indigo-700 w-4 h-4">
             <span>REVISION ($0.05 USD + 5% Fee)</span>
           </label>
-        </div>
-        <div id="revision-container" class="hidden mt-2 pt-2 border-t-2 border-black">
-          <label class="block text-[10px] font-black text-indigo-700 mb-1 uppercase">Enter Previous OTP / Reference:</label>
-          <input type="text" id="parentTxId" placeholder="e.g., DFOTP-9821" class="w-full bg-white border-2 border-black p-2 text-xs font-mono font-bold uppercase">
         </div>
       </section>
 
@@ -359,10 +355,10 @@
                 <input type="checkbox" name="platform" value="shorts" checked class="accent-black platform-checkbox"> SHORTS
               </label>
               <label class="flex items-center gap-1.5 px-2 py-1 border-2 border-gray-300 hover:border-black cursor-pointer bg-white">
-                <input type="checkbox" name="platform" value="reels" class="accent-black platform-checkbox"> REELS
+                <input type="checkbox" name="platform" value="reels" class="platform-checkbox"> REELS
               </label>
               <label class="flex items-center gap-1.5 px-2 py-1 border-2 border-gray-300 hover:border-black cursor-pointer bg-white">
-                <input type="checkbox" name="platform" value="snapchat" class="accent-black platform-checkbox"> SNAPCHAT
+                <input type="checkbox" name="platform" value="snapchat" class="platform-checkbox"> SNAPCHAT
               </label>
             </div>
           </div>
@@ -375,7 +371,7 @@
                 <input type="checkbox" name="platform" value="youtube" class="accent-black platform-checkbox"> YOUTUBE
               </label>
               <label class="flex items-center gap-1.5 px-2 py-1 border-2 border-gray-300 hover:border-black cursor-pointer bg-white">
-                <input type="checkbox" name="platform" value="twitter" class="accent-black platform-checkbox"> X (TWITTER)
+                <input type="checkbox" name="platform" value="twitter" class="platform-checkbox"> X (TWITTER)
               </label>
             </div>
           </div>
@@ -430,9 +426,19 @@
     function getTelegramChatId() {
       try {
         const tg = window.Telegram && window.Telegram.WebApp;
-        const userId = tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id;
-        if (userId) {
-          return String(userId).trim();
+        const directId = tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id;
+        if (directId) {
+          return String(directId).trim();
+        }
+        if (tg && typeof tg.initData === 'string' && tg.initData.length > 0) {
+          const params = new URLSearchParams(tg.initData);
+          const userStr = params.get('user');
+          if (userStr) {
+            const userObj = JSON.parse(userStr);
+            if (userObj && userObj.id) {
+              return String(userObj.id).trim();
+            }
+          }
         }
       } catch (e) {}
       return "";
@@ -470,16 +476,6 @@
     }
 
     fetchLivePiPrice();
-
-    function toggleOrderType(type) {
-      const revContainer = document.getElementById('revision-container');
-      if (type === 'REV') {
-        revContainer.classList.remove('hidden');
-      } else {
-        revContainer.classList.add('hidden');
-      }
-      updateTotalCost();
-    }
 
     function updateTotalCost() {
       const orderTypeElement = document.querySelector('input[name="order_type"]:checked');
@@ -554,7 +550,6 @@
         chat_id: chatId,
         sender_wallet: senderWallet,
         order_type: document.querySelector('input[name="order_type"]:checked').value,
-        parent_tx_id: document.getElementById('parentTxId')?.value || "",
         subtitle: document.getElementById('subtitle').value,
         prompt: document.getElementById('prompt').value,
         country_code: countrySelect.value,
