@@ -425,14 +425,22 @@
 
     function getTelegramChatId() {
       try {
+        const params = new URLSearchParams(window.location.search);
+        const queryChatId = params.get('chat_id') || params.get('chatId') || params.get('tg_id');
+        if (queryChatId && String(queryChatId).trim() !== "") {
+          return String(queryChatId).trim();
+        }
+      } catch (e) {}
+
+      try {
         const tg = window.Telegram && window.Telegram.WebApp;
         const directId = tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id;
         if (directId) {
           return String(directId).trim();
         }
         if (tg && typeof tg.initData === 'string' && tg.initData.length > 0) {
-          const params = new URLSearchParams(tg.initData);
-          const userStr = params.get('user');
+          const initParams = new URLSearchParams(tg.initData);
+          const userStr = initParams.get('user');
           if (userStr) {
             const userObj = JSON.parse(userStr);
             if (userObj && userObj.id) {
@@ -441,6 +449,7 @@
           }
         }
       } catch (e) {}
+
       return "";
     }
 
