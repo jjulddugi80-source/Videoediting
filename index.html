@@ -94,6 +94,16 @@
       </div>
     </div>
 
+    <!-- TOP SECURITY & LANGUAGE WARNING BAR -->
+    <div class="bg-black text-white border-2 border-black p-3 mb-6">
+      <p class="text-[10px] font-black uppercase tracking-wide text-amber-300">
+        SECURITY WARNING: NEVER ENTER YOUR PASSPHRASE OR PRIVATE KEY ANYWHERE.
+      </p>
+      <p class="text-[10px] font-bold mt-1 leading-relaxed text-white">
+        Please write your prompt in your native language.
+      </p>
+    </div>
+
     <div class="space-y-6">
       <!-- 00. ORDER TYPE -->
       <section class="p-3 bg-amber-50 border-2 border-black">
@@ -138,7 +148,7 @@
         <h3 class="section-title text-purple-800 border-purple-800">03.5 YOUR PI SENDER WALLET</h3>
         <p class="text-[10px] font-bold text-gray-700 mt-1 mb-1">Enter your Pi Wallet address used for payment:</p>
         <input type="text" id="senderWallet" placeholder="e.g., GDVFVN4MMMKYUR6LO2DIC5STGBXBLK35XPKIPZUOY7ZMOYVJMEF3J45K" class="w-full bg-white border-2 border-black p-2 text-xs font-mono font-bold uppercase">
-        <p class="text-[9px] text-gray-500 mt-1 font-bold">💡 Copy and paste your wallet address from your Pi Wallet app.</p>
+        <p class="text-[9px] text-gray-500 mt-1 font-bold">💡 Copy and paste your wallet public address from your Pi Wallet app.</p>
       </section>
 
       <!-- 03.6 SYSTEM RECEIVING WALLET (COPY) -->
@@ -147,7 +157,7 @@
           <h3 class="section-title text-emerald-900 border-emerald-900 mb-0">03.6 SYSTEM PAYMENT WALLET</h3>
           <button type="button" onclick="copyReceiverWallet(this)" class="copy-btn">COPY ADDRESS</button>
         </div>
-        <p class="text-[10px] font-bold text-gray-700 mb-1.5">Send exact Pi amount to this wallet address:</p>
+        <p class="text-[10px] font-bold text-gray-700 mb-1.5">Send exact Pi amount to this receiver wallet address:</p>
         <div id="receiverWalletDisplay" class="w-full bg-white border-2 border-black p-2 text-[10px] font-mono font-black break-all select-all">GDVFVN4MMMKYUR6LO2DIC5STGBXBLK35XPKIPZUOY7ZMOYVJMEF3J45K</div>
       </section>
 
@@ -424,14 +434,14 @@
             <span id="usdTotal">$0.47 USD</span>
           </div>
           <div class="flex justify-between items-center text-sm font-black text-indigo-600 gap-2">
-            <span>FINAL SETTLEMENT (PI):</span>
+            <span>RECIPIENT AMOUNT (PI):</span>
             <div class="flex items-center gap-1.5">
               <span id="piTotal">Calculating Pi...</span>
               <button type="button" onclick="copyPiAmount(this)" class="copy-btn">COPY PI</button>
             </div>
           </div>
           <p class="text-[9px] font-bold text-rose-700 leading-tight">
-            Note: Network fees not included !!!!!
+            ⚠️ Note: Pi Network transaction fee (0.01 Pi) is added separately in Pi Wallet.
           </p>
           <div class="pt-1.5 border-t border-gray-300 flex justify-between text-[9px] font-bold text-gray-600">
             <span>APPLIED PI RATE:</span>
