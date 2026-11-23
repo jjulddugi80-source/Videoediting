@@ -465,7 +465,28 @@
     let isSubmitting = false;
     let currentPiPriceUsd = 0.0519;
     let lastCalculatedUsd = "0.47";
-    let lastCalculatedPi = "9.0559";
+    let currentPaymentNonce = generateTwoDigitNonce();
+    let lastCalculatedPi = "9.0500";
+
+    function generateTwoDigitNonce() {
+      const rand = Math.floor(Math.random() * 99) + 1; // "01" ~ "99"
+      return String(rand).padStart(2, '0');
+    }
+
+    function buildMatchedPiAmount(rawPi, nonceStr) {
+      const num = Number(rawPi);
+      const cleanNonce = /^\d{2}$/.test(String(nonceStr || "")) ? String(nonceStr) : "01";
+      if (!Number.isFinite(num) || num <= 0) {
+        return `0.01${cleanNonce}`;
+      }
+      // 1) 소수점 둘째 자리까지 내림
+      const flooredTwo = Math.floor(num * 100) / 100;
+      // 2) 0.01 차감 (최소 0.01 유지)
+      const subtracted = Math.max(0.01, Math.round((flooredTwo - 0.01) * 100) / 100);
+      // 3) 2자리 난수를 소수점 3~4째 자리에 부착 (예: 5.4987 -> 5.48 + 0.0073 = 5.4873)
+      const nonceDecimal = Number(cleanNonce) / 10000;
+      return (subtracted + nonceDecimal).toFixed(4);
+    }
 
     try {
       if (window.Telegram && window.Telegram.WebApp) {
@@ -605,7 +626,7 @@
       const totalUsdWithFee = usdAmount * 1.05;
       const estimatedPi = totalUsdWithFee / currentPiPriceUsd;
       lastCalculatedUsd = totalUsdWithFee.toFixed(2);
-      lastCalculatedPi = estimatedPi.toFixed(4);
+      lastCalculatedPi = buildMatchedPiAmount(estimatedPi, currentPaymentNonce);
 
       const usdTotalEl = document.getElementById('usdTotal');
       const piTotalEl = document.getElementById('piTotal');
@@ -623,6 +644,8 @@
     document.querySelectorAll('input[name="order_type"]').forEach(radio => {
       radio.addEventListener('change', updateTotalCost);
     });
+
+    updateTotalCost();
 
     async function submitOrder() {
       if (isSubmitting) return;
@@ -675,6 +698,7 @@
         calculated_pi_price: currentPiPriceUsd,
         total_usd: lastCalculatedUsd,
         estimated_pi: lastCalculatedPi,
+        payment_nonce: currentPaymentNonce,
         timestamp: new Date().toISOString()
       };
 
