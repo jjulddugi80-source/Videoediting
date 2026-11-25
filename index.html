@@ -599,10 +599,18 @@
 
     fetchLivePiPrice();
 
-    // 소수점 2자리 기준 금액 뒤에 난수 2자리(00~99)를 붙여 4자리 문자열로 맞춤
-    function formatPiWithNonce(estimatedPi, nonce2) {
-      const baseTwoDecimals = Number(estimatedPi).toFixed(2);
-      return `${baseTwoDecimals}${nonce2}`;
+    // 원래 Pi 금액에서 0.01을 빼고 소수점 둘째 자리 밑 버림 후 난수 2자리(00~99) 부착
+    // 예: 10.8536 -> 10.8436 -> 10.84 + "09" -> "10.8409"
+    function formatPiMinusOneCentWithNonce(estimatedPi, nonce2) {
+      const num = Number(estimatedPi);
+      const cleanNonce2 = String(nonce2 ?? '00').padStart(2, '0').slice(-2);
+      if (!Number.isFinite(num) || num <= 0) {
+        return `0.00${cleanNonce2}`;
+      }
+      const centsMinusOne = Math.floor(num * 100 + 1e-9) - 1;
+      const safeCents = Math.max(0, centsMinusOne);
+      const baseTwoDecimals = (safeCents / 100).toFixed(2);
+      return `${baseTwoDecimals}${cleanNonce2}`;
     }
 
     function updateTotalCost() {
@@ -618,7 +626,7 @@
       const totalUsdWithFee = usdAmount * 1.05;
       const estimatedPi = totalUsdWithFee / currentPiPriceUsd;
       lastCalculatedUsd = totalUsdWithFee.toFixed(2);
-      lastCalculatedPi = formatPiWithNonce(estimatedPi, paymentNonce2);
+      lastCalculatedPi = formatPiMinusOneCentWithNonce(estimatedPi, paymentNonce2);
 
       const usdTotalEl = document.getElementById('usdTotal');
       const piTotalEl = document.getElementById('piTotal');
