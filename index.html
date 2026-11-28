@@ -111,14 +111,14 @@
         <div class="flex flex-col gap-2 mt-2">
           <label class="flex items-center gap-2 cursor-pointer text-xs font-black">
             <input type="radio" name="order_type" value="NEW" checked class="accent-black w-4 h-4">
-            <span>NEW ORDER (2-Month 50% Promo Base $0.25 + $0.10/EA + 5% Fee)</span>
+            <span>NEW ORDER (50% Promo Base $0.25 + $0.10/EA + 5% Fee)</span>
           </label>
           <label class="flex items-center gap-2 cursor-pointer text-xs font-black text-indigo-700">
             <input type="radio" name="order_type" value="REV" class="accent-indigo-700 w-4 h-4">
             <span>REVISION ($0.05 USD + 5% Fee)</span>
           </label>
         </div>
-        <p class="text-[9px] font-bold text-amber-900 mt-2">⚡ Special 2-month launch promotion active.</p>
+        <p class="text-[9px] font-bold text-amber-900 mt-2">⚡ Special launch promotion active.</p>
       </section>
 
       <!-- 01. SCREEN SUBTITLE -->
@@ -131,7 +131,7 @@
       <section class="p-3 bg-blue-50 border-2 border-black">
         <h3 class="section-title text-blue-800 border-blue-800">02. MEDIA FILE UPLOAD GUIDE</h3>
         <div class="text-[10px] font-bold text-gray-700 space-y-1.5 mt-2">
-          <p>🚀 After submitting this form, please upload both files directly to the Telegram chat:</p>
+          <p>🚀 Upload your media files in Telegram so we can link your session:</p>
           <p class="text-blue-700 font-black">1. Source Video File (MP4/MOV)</p>
           <p class="text-emerald-700 font-black">2. Background Music File (MP3)</p>
         </div>
@@ -140,7 +140,7 @@
       <!-- 03. EDITING DIRECTION -->
       <section>
         <h3 class="section-title text-indigo-700 border-indigo-700">03. EDITING DIRECTION</h3>
-        <textarea id="prompt" rows="3" class="w-full bg-gray-50 border-2 border-black p-2.5 text-xs font-bold outline-none resize-none placeholder-gray-400" placeholder="e.g., Yɛntɔ Dwom - Anigye na ɛwɔ ha (Epic groove, dynamic vibe...)"></textarea>
+        <textarea id="prompt" rows="3" class="w-full bg-gray-50 border-2 border-black p-2.5 text-xs font-bold outline-none resize-none placeholder-gray-400" placeholder="e.g., Epic groove, clean cuts, clear subtitles..."></textarea>
       </section>
 
       <!-- 03.5 SENDER WALLET ADDRESS -->
@@ -453,7 +453,7 @@
           </div>
         </div>
         <button onclick="submitOrder()" id="submitBtn" class="w-full bg-black text-white font-black py-4 text-xs hover:bg-zinc-800 transition active:scale-95 uppercase tracking-widest border-2 border-black shadow-lg">
-          [ SUBMIT & START AI FACTORY ]
+          [ SUBMIT & START AI EDITING ]
         </button>
       </div>
     </div>
@@ -462,17 +462,18 @@
   <script>
     const SYSTEM_RECEIVER_WALLET = "GDVFVN4MMMKYUR6LO2DIC5STGBXBLK35XPKIPZUOY7ZMOYVJMEF3J45K";
     const SUPPORT_EMAIL = "jjulddugi80@gmail.com";
+    const DEFAULT_D_FACTOR = "1.00"; // 코어팀·향후 AI 제어 레버(UI 미노출)
+
     let isSubmitting = false;
     let currentPiPriceUsd = 0.0519;
     let lastCalculatedUsd = "0.47";
-    let lastCalculatedPi = "9.0559";
+    let lastCalculatedPi = "9.0500";
 
-    // 주문 세션당 00~99 난수 생성
     function generateNonce2() {
       const n = Math.floor(Math.random() * 100);
       return String(n).padStart(2, '0');
     }
-    let paymentNonce2 = generateNonce2();
+    const paymentNonce2 = generateNonce2();
 
     try {
       if (window.Telegram && window.Telegram.WebApp) {
@@ -484,14 +485,12 @@
     async function copyToClipboard(text) {
       const cleanText = String(text ?? "").trim();
       if (!cleanText) return false;
-
       try {
         if (navigator.clipboard && window.isSecureContext) {
           await navigator.clipboard.writeText(cleanText);
           return true;
         }
       } catch (e) {}
-
       try {
         const textarea = document.createElement('textarea');
         textarea.value = cleanText;
@@ -548,17 +547,14 @@
       try {
         const tg = window.Telegram && window.Telegram.WebApp;
         const directId = tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id;
-        if (directId) {
-          return String(directId).trim();
-        }
+        if (directId) return String(directId).trim();
+
         if (tg && typeof tg.initData === 'string' && tg.initData.length > 0) {
           const initParams = new URLSearchParams(tg.initData);
           const userStr = initParams.get('user');
           if (userStr) {
             const userObj = JSON.parse(userStr);
-            if (userObj && userObj.id) {
-              return String(userObj.id).trim();
-            }
+            if (userObj && userObj.id) return String(userObj.id).trim();
           }
         }
       } catch (e) {}
@@ -590,27 +586,16 @@
         }
       } catch (e) {
         const fallbackPrice = localStorage.getItem('cached_pi_price');
-        if (fallbackPrice) {
-          currentPiPriceUsd = parseFloat(fallbackPrice);
-        }
+        if (fallbackPrice) currentPiPriceUsd = parseFloat(fallbackPrice);
       }
       updateTotalCost();
     }
 
     fetchLivePiPrice();
 
-    // 원래 Pi 금액에서 0.01을 빼고 소수점 둘째 자리 밑 버림 후 난수 2자리(00~99) 부착
-    // 예: 10.8536 -> 10.8436 -> 10.84 + "09" -> "10.8409"
-    function formatPiMinusOneCentWithNonce(estimatedPi, nonce2) {
-      const num = Number(estimatedPi);
-      const cleanNonce2 = String(nonce2 ?? '00').padStart(2, '0').slice(-2);
-      if (!Number.isFinite(num) || num <= 0) {
-        return `0.00${cleanNonce2}`;
-      }
-      const centsMinusOne = Math.floor(num * 100 + 1e-9) - 1;
-      const safeCents = Math.max(0, centsMinusOne);
-      const baseTwoDecimals = (safeCents / 100).toFixed(2);
-      return `${baseTwoDecimals}${cleanNonce2}`;
+    function formatPiWithNonce(estimatedPi, nonce2) {
+      const baseTwoDecimals = Number(estimatedPi).toFixed(2);
+      return `${baseTwoDecimals}${nonce2}`;
     }
 
     function updateTotalCost() {
@@ -625,8 +610,9 @@
       }
       const totalUsdWithFee = usdAmount * 1.05;
       const estimatedPi = totalUsdWithFee / currentPiPriceUsd;
+
       lastCalculatedUsd = totalUsdWithFee.toFixed(2);
-      lastCalculatedPi = formatPiMinusOneCentWithNonce(estimatedPi, paymentNonce2);
+      lastCalculatedPi = formatPiWithNonce(estimatedPi, paymentNonce2);
 
       const usdTotalEl = document.getElementById('usdTotal');
       const piTotalEl = document.getElementById('piTotal');
@@ -650,7 +636,7 @@
 
       const chatId = getTelegramChatId();
       if (!chatId) {
-        alert("⚠️ Please open this form inside the Telegram Mini App. Direct browser submission to n8n is blocked.");
+        alert("⚠️ Please open this form inside the Telegram Mini App.");
         return;
       }
 
@@ -693,6 +679,9 @@
         gender: genderValue,
         platforms: platforms,
         copyright_protection: copyrightProtected,
+        v_factor: String(currentPiPriceUsd),
+        n_factor: paymentNonce2,
+        d_factor: DEFAULT_D_FACTOR,
         calculated_pi_price: currentPiPriceUsd,
         total_usd: lastCalculatedUsd,
         estimated_pi: lastCalculatedPi,
@@ -714,7 +703,7 @@
         } else {
           alert("⚠️ 전송 실패: 서버 응답 코드(" + response.status + ")");
           if (btn) {
-            btn.innerText = "[ SUBMIT & START AI FACTORY ]";
+            btn.innerText = "[ SUBMIT & START AI EDITING ]";
             btn.disabled = false;
           }
           isSubmitting = false;
@@ -722,7 +711,7 @@
       } catch (error) {
         alert("⚠️ 통신 에러가 발생했습니다.");
         if (btn) {
-          btn.innerText = "[ SUBMIT & START AI FACTORY ]";
+          btn.innerText = "[ SUBMIT & START AI EDITING ]";
           btn.disabled = false;
         }
         isSubmitting = false;
